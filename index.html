@@ -1,228 +1,637 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TimeFlow</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background-color: #dc2626;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TimeFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-dark: #A20000; /* Vermelho escuro para o fundo */
+            --primary-medium: #CC0000; /* Vermelho médio para cartões e modal */
+            --primary-light: #FF3333; /* Vermelho claro para destaque */
+            --text-light: #FFFFFF;
+            --text-dark: #333333;
+            --button-bg-start: #FFFFFF;
+            --button-text-start: var(--primary-medium);
+            --button-bg-stop: var(--primary-dark);
+            --button-text-stop: var(--text-light);
+            --history-item-bg: #E0E0E0; /* Cor de fundo mais clara para os itens do histórico */
+            --history-item-text: var(--text-dark); /* Texto escuro para itens claros */
+            --input-bg: #F0F0F0;
+            --input-text: var(--text-dark);
+            --shadow: rgba(0,0,0,0.2);
+            /* Novas cores para o botão de relatório para combinar com a imagem */
+            --report-button-bg: #E30000; /* Vermelho mais vibrante, como na imagem */
+            --report-button-hover: #C00000; /* Um pouco mais escuro no hover */
+            --modal-overlay-bg: rgba(0,0,0,0.7); /* Fundo escuro para o modal */
+        }
 
-    h1 {
-      font-size: 2.5rem;
-      font-weight: bold;
-      margin-bottom: 2rem;
-    }
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
 
-    .card {
-      background-color: #b91c1c;
-      padding: 2rem;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      text-align: center;
-    }
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h1 i {
+            color: var(--button-bg-start);
+        }
 
-    .timer {
-      font-size: 3rem;
-      font-family: monospace;
-      margin-bottom: 1rem;
-    }
+        .card {
+            background-color: var(--primary-medium);
+            padding: 2.5rem;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 8px 20px var(--shadow);
+            text-align: center;
+            box-sizing: border-box;
+            position: relative;
+        }
 
-    input {
-      padding: 0.5rem;
-      width: 100%;
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
-      color: black;
-    }
+        .timer-status-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
 
-    button {
-      padding: 1rem;
-      font-size: 1.2rem;
-      width: 100%;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+        .timer {
+            font-size: 4rem;
+            font-family: 'Poppins', monospace;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+        }
 
-    .start {
-      background-color: white;
-      color: #b91c1c;
-      font-weight: bold;
-    }
+        input {
+            padding: 0.8rem 1rem;
+            width: calc(100% - 2rem);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 8px;
+            color: var(--input-text);
+            background-color: var(--input-bg);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-light), inset 0 1px 3px rgba(0,0,0,0.1);
+        }
 
-    .stop {
-      background-color: #991b1b;
-      color: white;
-      margin-top: 1rem;
-    }
+        .jira-info {
+            font-style: italic;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            min-height: 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
 
-    .history {
-      margin-top: 2rem;
-      max-width: 400px;
-      width: 100%;
-    }
+        button {
+            padding: 1.2rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
 
-    .history-item {
-      background-color: #f87171;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px var(--shadow);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
 
-    footer {
-      margin-top: 3rem;
-      font-size: 0.8rem;
-      opacity: 0.7;
-    }
+        .start {
+            background-color: var(--button-bg-start);
+            color: var(--button-text-start);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
 
-    .italic {
-      font-style: italic;
-      font-size: 0.9rem;
-    }
-  </style>
+        .stop {
+            background-color: var(--button-bg-stop);
+            color: var(--button-text-stop);
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Estilo para o novo botão de relatório - AGORA MAIS PARECIDO COM A IMAGEM */
+        .report-button {
+            background-color: var(--report-button-bg); /* Vermelho mais vibrante */
+            color: var(--text-light); /* Texto branco */
+            margin-top: 1rem;
+            max-width: 450px;
+            border-radius: 8px; /* Mantém as bordas arredondadas */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            /* Ajustes para parecer mais com o da imagem */
+            font-weight: 600;
+            padding: 1rem 1.2rem; /* Um pouco menos de padding para um visual mais compacto */
+        }
+        .report-button:hover {
+            background-color: var(--report-button-hover); /* Um pouco mais escuro no hover */
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+        }
+        .report-button i {
+            margin-right: 8px; /* Espaçamento entre o ícone e o texto */
+            font-size: 1.1rem; /* Ajuste o tamanho do ícone se necessário */
+        }
+
+
+        .history {
+            margin-top: 3rem;
+            max-width: 450px;
+            width: 100%;
+            box-sizing: border-box;
+            color: var(--text-light);
+        }
+
+        .history h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-light);
+        }
+
+        .history-item {
+            background-color: var(--history-item-bg);
+            color: var(--history-item-text);
+            padding: 1rem 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .history-item strong {
+            font-size: 1.15rem;
+            display: block;
+            margin-bottom: 0.2rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+        .history-item .item-details {
+            font-size: 0.95rem;
+            color: var(--input-text);
+            line-height: 1.4;
+        }
+        .history-item .item-jira-summary {
+            font-style: italic;
+            margin-top: 0.2rem;
+            font-size: 0.85rem;
+        }
+        .history-item .item-timestamp {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+
+        .history-item .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--primary-medium);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+        .history-item .delete-button:hover {
+            color: var(--primary-dark);
+            background-color: rgba(255,255,255,0.3);
+        }
+
+
+        footer {
+            margin-top: 4rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        /* Estilos para o Modal/Relatório */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: var(--modal-overlay-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background-color: var(--primary-medium);
+            margin: auto;
+            padding: 2.5rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 650px;
+            box-shadow: 0 8px 20px var(--shadow);
+            position: relative;
+            animation-name: animatetop;
+            animation-duration: 0.4s;
+            box-sizing: border-box;
+            color: var(--text-light);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--button-bg-start);
+        }
+
+        .close-button {
+            color: var(--text-light);
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease, transform 0.2s ease;
+            line-height: 1;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--primary-light);
+            transform: scale(1.1);
+            text-decoration: none;
+        }
+        
+        .report-date {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: -1rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+            display: block;
+        }
+
+
+        .daily-report-content {
+            background-color: rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            text-align: left;
+            font-family: 'Poppins', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
+            color: var(--text-light);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .daily-report-content strong {
+            color: var(--button-bg-start);
+            font-weight: 600;
+        }
+
+
+        /* Animação do Modal */
+        @keyframes animatetop {
+            from {top: -300px; opacity: 0}
+            to {top: 0; opacity: 1}
+        }
+
+
+        /* Responsividade básica */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2.5rem;
+                margin-bottom: 2rem;
+            }
+            .card {
+                padding: 2rem;
+                max-width: 90%;
+            }
+            .timer {
+                font-size: 3.5rem;
+            }
+            button {
+                font-size: 1.1rem;
+                padding: 1rem;
+            }
+            .history h3 {
+                font-size: 1.5rem;
+            }
+            .history-item {
+                padding: 1rem;
+            }
+            .modal-content {
+                padding: 1.5rem;
+                width: 95%;
+            }
+            .modal-header h2 {
+                font-size: 1.5rem;
+            }
+            .close-button {
+                font-size: 1.5rem;
+            }
+            .daily-report-content {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>✔ TimeFlow</h1>
+    <h1><i class="fas fa-tasks"></i> TimeFlow</h1>
 
-  <div class="card">
-    <div class="timer" id="timer">00:00</div>
+    <div class="card">
+        <div class="timer-status-icon" id="timerStatusIcon"></div>
+        <div class="timer" id="timer">00:00</div>
 
-    <div id="inputSection">
-      <input type="text" id="taskInput" placeholder="Digite o código do ticket (ex: HDA-123)" />
-      <div id="jiraInfo" class="italic"></div>
-      <button class="start" onclick="startTimer()">START</button>
+        <div id="inputSection">
+            <input type="text" id="taskInput" placeholder="Digite o código do ticket (ex: HDA-123)" />
+            <div id="jiraInfo" class="jira-info"></div>
+            <button class="start" onclick="startTimer()"><i class="fas fa-play"></i> START</button>
+        </div>
+
+        <div id="activeTask" style="display: none;">
+            <h2 id="currentTask"></h2>
+            <p id="currentJira" class="jira-info"></p>
+            <button class="stop" onclick="stopTimer()"><i class="fas fa-stop"></i> ENCERRAR</button>
+        </div>
     </div>
 
-    <div id="activeTask" style="display: none;">
-      <h2 id="currentTask"></h2>
-      <p id="currentJira" class="italic"></p>
-      <button class="stop" onclick="stopTimer()">ENCERRAR</button>
+    <button class="report-button" onclick="showDailyReport()"><i class="fas fa-clipboard-list"></i> Ver Histórico do Dia</button>
+
+    <div class="history" id="historySection" style="display: none;">
+        <h3>Histórico Completo</h3>
+        <div id="historyList"></div>
     </div>
-  </div>
 
-  <div class="history" id="historySection" style="display: none;">
-    <h3 style="border-bottom: 1px solid white; padding-bottom: 0.5rem;">Histórico</h3>
-    <div id="historyList"></div>
-  </div>
+    <footer>Developer by Rodrigo Quaresma</footer>
 
-  <footer>Developer by Rodrigo Quaresma</footer>
+    <div id="dailyReportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Relatório Diário</h2>
+                <span class="close-button" onclick="closeDailyReportModal()">&times;</span>
+            </div>
+            <span id="reportDateDisplay" class="report-date"></span>
+            <div id="dailyReportContent" class="daily-report-content">
+                </div>
+        </div>
+    </div>
 
-  <script>
-    let time = 0;
-    let timerInterval = null;
-    let history = []; // Esta variável será inicializada com o histórico salvo
+    <script>
+        let time = 0;
+        let timerInterval = null;
+        let history = []; 
 
-    const taskInput = document.getElementById("taskInput");
-    const jiraInfo = document.getElementById("jiraInfo");
-    const timerDisplay = document.getElementById("timer");
-    const currentTask = document.getElementById("currentTask");
-    const currentJira = document.getElementById("currentJira");
-    const inputSection = document.getElementById("inputSection");
-    const activeTask = document.getElementById("activeTask");
-    const historySection = document.getElementById("historySection");
-    const historyList = document.getElementById("historyList");
+        const taskInput = document.getElementById("taskInput");
+        const jiraInfo = document.getElementById("jiraInfo");
+        const timerDisplay = document.getElementById("timer");
+        const currentTask = document.getElementById("currentTask");
+        const currentJira = document.getElementById("currentJira");
+        const inputSection = document.getElementById("inputSection");
+        const activeTask = document.getElementById("activeTask");
+        const historySection = document.getElementById("historySection");
+        const historyList = document.getElementById("historyList");
+        const timerStatusIcon = document.getElementById("timerStatusIcon");
 
-    // --- FUNÇÕES DE ARMAZENAMENTO LOCAL ---
-    function saveHistory() {
-      localStorage.setItem("timeflowHistory", JSON.stringify(history));
-    }
+        const dailyReportModal = document.getElementById("dailyReportModal");
+        const dailyReportContent = document.getElementById("dailyReportContent");
+        const reportDateDisplay = document.getElementById("reportDateDisplay");
 
-    function loadHistory() {
-      const savedHistory = localStorage.getItem("timeflowHistory");
-      if (savedHistory) {
-        history = JSON.parse(savedHistory);
-        updateHistory(); // Atualiza a exibição do histórico ao carregar
-      }
-    }
-    // --- FIM FUNÇÕES DE ARMAZENAMENTO LOCAL ---
+        // --- FUNÇÕES DE ARMAZENAMENTO LOCAL ---
+        function saveHistory() {
+            localStorage.setItem("timeflowHistory", JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            const savedHistory = localStorage.getItem("timeflowHistory");
+            if (savedHistory) {
+                history = JSON.parse(savedHistory);
+                history = history.map(item => {
+                    if (!item.timestamp) {
+                        item.timestamp = new Date().toISOString(); 
+                    }
+                    return item;
+                });
+                saveHistory(); 
+                updateHistory();
+            }
+        }
+        // --- FIM FUNÇÕES DE ARMAZENAMENTO LOCAL ---
+
+        taskInput.addEventListener("input", () => {
+            const value = taskInput.value.trim();
+            const match = value.match(/([A-Z]+-\d+)/);
+            if (match) {
+                jiraInfo.textContent = `Resumo simulado para ${match[1]}`;
+            } else {
+                jiraInfo.textContent = "";
+            }
+        });
+
+        function formatTime(seconds) {
+            const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
+            const secs = String(seconds % 60).padStart(2, "0");
+            return `${mins}:${secs}`;
+        }
+
+        function formatDateForReport(dateObj) {
+            const d = new Date(dateObj); 
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function startTimer() {
+            const task = taskInput.value.trim();
+            if (!task) {
+                alert("Por favor, digite o código do ticket para iniciar!");
+                return;
+            }
+
+            time = 0;
+            timerDisplay.textContent = "00:00";
+            inputSection.style.display = "none";
+            activeTask.style.display = "block";
+            currentTask.textContent = "Tarefa: " + task;
+            currentJira.textContent = jiraInfo.textContent;
+            
+            timerStatusIcon.innerHTML = '<i class="fas fa-hourglass-half" title="Em andamento"></i>';
+
+            timerInterval = setInterval(() => {
+                time++;
+                timerDisplay.textContent = formatTime(time);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+
+            const task = taskInput.value.trim();
+            const jiraSummary = currentJira.textContent;
+            history.push({ 
+                task, 
+                duration: time, 
+                jiraSummary,
+                timestamp: new Date().toISOString() 
+            });
+
+            saveHistory();
+            updateHistory();
+
+            taskInput.value = "";
+            jiraInfo.textContent = "";
+            inputSection.style.display = "block";
+            activeTask.style.display = "none";
+            timerStatusIcon.innerHTML = '<i class="fas fa-check-circle" title="Parado"></i>';
+        }
+
+        function deleteHistoryItem(index) {
+            const originalIndex = history.length - 1 - index; 
+            if (confirm("Tem certeza que deseja remover esta tarefa do histórico?")) {
+                history.splice(originalIndex, 1);
+                saveHistory();
+                updateHistory();
+            }
+        }
 
 
-    taskInput.addEventListener("input", () => {
-      const value = taskInput.value;
-      const match = value.match(/([A-Z]+-\d+)/);
-      if (match) {
-        // Simulação da resposta do Jira
-        jiraInfo.textContent = `Resumo simulado para ${match[1]}`;
-      } else {
-        jiraInfo.textContent = "";
-      }
-    });
+        function updateHistory() {
+            if (history.length > 0) {
+                historySection.style.display = "block";
+            } else {
+                historySection.style.display = "none";
+            }
+            
+            historyList.innerHTML = "";
 
-    function formatTime(seconds) {
-      const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
-      const secs = String(seconds % 60).padStart(2, "0");
-      return `${mins}:${secs}`;
-    }
+            history.slice().reverse().forEach((item, index) => {
+                const div = document.createElement("div");
+                div.className = "history-item";
+                const itemDate = item.timestamp ? new Date(item.timestamp) : null;
+                const formattedDate = itemDate ? `Registrado em: ${formatDateForReport(itemDate)}` : 'Data Indefinida';
+                
+                div.innerHTML = `
+                    <button class="delete-button" onclick="deleteHistoryItem(${index})" title="Remover tarefa"><i class="fas fa-times-circle"></i></button>
+                    <strong>${item.task}</strong>
+                    <div class="item-details">Tempo: ${formatTime(item.duration)}</div>
+                    ${item.jiraSummary && item.jiraSummary !== "" ? `<div class="item-details item-jira-summary">${item.jiraSummary}</div>` : ''}
+                    <div class="item-timestamp">${formattedDate}</div>
+                `;
+                historyList.appendChild(div);
+            });
+        }
 
-    function startTimer() {
-      const task = taskInput.value.trim();
-      if (!task) return;
+        // --- FUNÇÕES DE RELATÓRIO DIÁRIO ---
+        function showDailyReport() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
 
-      time = 0;
-      timerDisplay.textContent = "00:00";
-      inputSection.style.display = "none";
-      activeTask.style.display = "block";
-      currentTask.textContent = "Tarefa: " + task;
-      currentJira.textContent = jiraInfo.textContent;
+            let dailyTasks = [];
+            let totalDailyTime = 0;
 
-      timerInterval = setInterval(() => {
-        time++;
-        timerDisplay.textContent = formatTime(time);
-      }, 1000);
-    }
+            history.forEach(item => {
+                if (item.timestamp) {
+                    const itemDate = new Date(item.timestamp);
+                    itemDate.setHours(0, 0, 0, 0); 
 
-    function stopTimer() {
-      clearInterval(timerInterval);
+                    if (itemDate.getTime() === today.getTime()) { 
+                        dailyTasks.push(item);
+                        totalDailyTime += item.duration;
+                    }
+                }
+            });
 
-      const task = taskInput.value.trim();
-      const jiraSummary = jiraInfo.textContent; // Salvar o resumo do Jira também
-      history.push({ task, duration: time, jiraSummary }); // Adicionado jiraSummary
+            reportDateDisplay.textContent = `Data: ${formatDateForReport(today)}`;
 
-      saveHistory(); // Salva o histórico após adicionar um novo item
-      updateHistory();
+            let reportHtml = ''; 
 
-      taskInput.value = "";
-      jiraInfo.textContent = "";
-      inputSection.style.display = "block";
-      activeTask.style.display = "none";
-    }
+            if (dailyTasks.length > 0) {
+                dailyTasks.forEach(item => {
+                    reportHtml += `<strong>- ${item.task}</strong> (${formatTime(item.duration)})<br>`;
+                    if (item.jiraSummary && item.jiraSummary !== "") {
+                        reportHtml += `  <span class="italic" style="display: block; margin-left: 15px; margin-bottom: 5px;">${item.jiraSummary}</span><br>`;
+                    } else {
+                        reportHtml += `<br>`; 
+                    }
+                });
+                reportHtml += `<br><strong>Tempo Total do Dia: ${formatTime(totalDailyTime)}</strong>`;
+            } else {
+                reportHtml = "Nenhuma tarefa registrada para hoje.";
+            }
 
-    function updateHistory() {
-      // Garante que a seção de histórico só apareça se houver itens
-      if (history.length > 0) {
-        historySection.style.display = "block";
-      } else {
-        historySection.style.display = "none";
-      }
-      
-      historyList.innerHTML = "";
+            dailyReportContent.innerHTML = reportHtml; 
+            dailyReportModal.style.display = "flex"; 
+        }
 
-      history.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "history-item";
-        div.innerHTML = `
-          <div><strong>${item.task}</strong></div>
-          <div class="italic">Tempo: ${formatTime(item.duration)}</div>
-          ${item.jiraSummary ? `<div class="italic">${item.jiraSummary}</div>` : ''}
-        `; // Adicionado exibição do resumo do Jira
-        historyList.appendChild(div);
-      });
-    }
+        function closeDailyReportModal() {
+            dailyReportModal.style.display = "none";
+        }
 
-    // --- CHAMADA PARA CARREGAR O HISTÓRICO AO INICIAR A PÁGINA ---
-    loadHistory(); 
-    // --- FIM CHAMADA PARA CARREGAR O HISTÓRICO ---
-  </script>
+        window.onclick = function(event) {
+            if (event.target == dailyReportModal) {
+                dailyReportModal.style.display = "none";
+            }
+        }
+        // --- FIM FUNÇÕES DE RELATÓRIO DIÁRIO ---
+
+
+        // --- CHAMADA PARA CARREGAR O HISTÓRICO AO INICIAR A PÁGINA ---
+        loadHistory(); 
+        timerStatusIcon.innerHTML = '<i class="fas fa-check-circle" title="Parado"></i>'; 
+    </script>
 </body>
 </html>
