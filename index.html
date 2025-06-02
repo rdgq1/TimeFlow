@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TimeFlow</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #dc2626;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background-color: #b91c1c;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .timer {
+      font-size: 3rem;
+      font-family: monospace;
+      margin-bottom: 1rem;
+    }
+
+    input {
+      padding: 0.5rem;
+      width: 100%;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      color: black;
+    }
+
+    button {
+      padding: 1rem;
+      font-size: 1.2rem;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .start {
+      background-color: white;
+      color: #b91c1c;
+      font-weight: bold;
+    }
+
+    .stop {
+      background-color: #991b1b;
+      color: white;
+      margin-top: 1rem;
+    }
+
+    .history {
+      margin-top: 2rem;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .history-item {
+      background-color: #f87171;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .italic {
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>✔ TimeFlow</h1>
+
+  <div class="card">
+    <div class="timer" id="timer">00:00</div>
+
+    <div id="inputSection">
+      <input type="text" id="taskInput" placeholder="Digite o código do ticket (ex: HDA-123)" />
+      <div id="jiraInfo" class="italic"></div>
+      <button class="start" onclick="startTimer()">START</button>
+    </div>
+
+    <div id="activeTask" style="display: none;">
+      <h2 id="currentTask"></h2>
+      <p id="currentJira" class="italic"></p>
+      <button class="stop" onclick="stopTimer()">ENCERRAR</button>
+    </div>
+  </div>
+
+  <div class="history" id="historySection" style="display: none;">
+    <h3 style="border-bottom: 1px solid white; padding-bottom: 0.5rem;">Histórico</h3>
+    <div id="historyList"></div>
+  </div>
+
+  <footer>Developer by Rodrigo Quaresma</footer>
+
+  <script>
+    let time = 0;
+    let timerInterval = null;
+    let history = []; // Esta variável será inicializada com o histórico salvo
+
+    const taskInput = document.getElementById("taskInput");
+    const jiraInfo = document.getElementById("jiraInfo");
+    const timerDisplay = document.getElementById("timer");
+    const currentTask = document.getElementById("currentTask");
+    const currentJira = document.getElementById("currentJira");
+    const inputSection = document.getElementById("inputSection");
+    const activeTask = document.getElementById("activeTask");
+    const historySection = document.getElementById("historySection");
+    const historyList = document.getElementById("historyList");
+
+    // --- FUNÇÕES DE ARMAZENAMENTO LOCAL ---
+    function saveHistory() {
+      localStorage.setItem("timeflowHistory", JSON.stringify(history));
+    }
+
+    function loadHistory() {
+      const savedHistory = localStorage.getItem("timeflowHistory");
+      if (savedHistory) {
+        history = JSON.parse(savedHistory);
+        updateHistory(); // Atualiza a exibição do histórico ao carregar
+      }
+    }
+    // --- FIM FUNÇÕES DE ARMAZENAMENTO LOCAL ---
+
+
+    taskInput.addEventListener("input", () => {
+      const value = taskInput.value;
+      const match = value.match(/([A-Z]+-\d+)/);
+      if (match) {
+        // Simulação da resposta do Jira
+        jiraInfo.textContent = `Resumo simulado para ${match[1]}`;
+      } else {
+        jiraInfo.textContent = "";
+      }
+    });
+
+    function formatTime(seconds) {
+      const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
+      const secs = String(seconds % 60).padStart(2, "0");
+      return `${mins}:${secs}`;
+    }
+
+    function startTimer() {
+      const task = taskInput.value.trim();
+      if (!task) return;
+
+      time = 0;
+      timerDisplay.textContent = "00:00";
+      inputSection.style.display = "none";
+      activeTask.style.display = "block";
+      currentTask.textContent = "Tarefa: " + task;
+      currentJira.textContent = jiraInfo.textContent;
+
+      timerInterval = setInterval(() => {
+        time++;
+        timerDisplay.textContent = formatTime(time);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+
+      const task = taskInput.value.trim();
+      const jiraSummary = jiraInfo.textContent; // Salvar o resumo do Jira também
+      history.push({ task, duration: time, jiraSummary }); // Adicionado jiraSummary
+
+      saveHistory(); // Salva o histórico após adicionar um novo item
+      updateHistory();
+
+      taskInput.value = "";
+      jiraInfo.textContent = "";
+      inputSection.style.display = "block";
+      activeTask.style.display = "none";
+    }
+
+    function updateHistory() {
+      // Garante que a seção de histórico só apareça se houver itens
+      if (history.length > 0) {
+        historySection.style.display = "block";
+      } else {
+        historySection.style.display = "none";
+      }
+      
+      historyList.innerHTML = "";
+
+      history.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `
+          <div><strong>${item.task}</strong></div>
+          <div class="italic">Tempo: ${formatTime(item.duration)}</div>
+          ${item.jiraSummary ? `<div class="italic">${item.jiraSummary}</div>` : ''}
+        `; // Adicionado exibição do resumo do Jira
+        historyList.appendChild(div);
+      });
+    }
+
+    // --- CHAMADA PARA CARREGAR O HISTÓRICO AO INICIAR A PÁGINA ---
+    loadHistory(); 
+    // --- FIM CHAMADA PARA CARREGAR O HISTÓRICO ---
+  </script>
+</body>
+</html>
