@@ -1,637 +1,558 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TimeFlow</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8">
+    <title>TimeFlow - Cronômetro com Tarefas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        :root {
-            --primary-dark: #A20000; /* Vermelho escuro para o fundo */
-            --primary-medium: #CC0000; /* Vermelho médio para cartões e modal */
-            --primary-light: #FF3333; /* Vermelho claro para destaque */
-            --text-light: #FFFFFF;
-            --text-dark: #333333;
-            --button-bg-start: #FFFFFF;
-            --button-text-start: var(--primary-medium);
-            --button-bg-stop: var(--primary-dark);
-            --button-text-stop: var(--text-light);
-            --history-item-bg: #E0E0E0; /* Cor de fundo mais clara para os itens do histórico */
-            --history-item-text: var(--text-dark); /* Texto escuro para itens claros */
-            --input-bg: #F0F0F0;
-            --input-text: var(--text-dark);
-            --shadow: rgba(0,0,0,0.2);
-            /* Novas cores para o botão de relatório para combinar com a imagem */
-            --report-button-bg: #E30000; /* Vermelho mais vibrante, como na imagem */
-            --report-button-hover: #C00000; /* Um pouco mais escuro no hover */
-            --modal-overlay-bg: rgba(0,0,0,0.7); /* Fundo escuro para o modal */
-        }
-
-        body {
+        * {
             margin: 0;
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--primary-dark);
-            color: var(--text-light);
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #990000; /* Vermelho escuro */
+            color: #fff;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 2rem;
-            box-sizing: border-box;
+            padding: 30px;
         }
-
         h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 2.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
         }
-        h1 i {
-            color: var(--button-bg-start);
-        }
-
-        .card {
-            background-color: var(--primary-medium);
-            padding: 2.5rem;
-            border-radius: 15px;
+        .timer-card, .task-log {
+            background-color: #cc0000; /* Vermelho mais claro */
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
             width: 100%;
-            max-width: 450px;
-            box-shadow: 0 8px 20px var(--shadow);
+            max-width: 400px;
+        }
+        #timer {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
             text-align: center;
-            box-sizing: border-box;
-            position: relative;
         }
-
-        .timer-status-icon {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1.5rem;
-            color: rgba(255, 255, 255, 0.5);
+        #timer-info {
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #ffcccc;
+            text-align: center;
         }
-
-        .timer {
-            font-size: 4rem;
-            font-family: 'Poppins', monospace;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            letter-spacing: 2px;
-        }
-
-        input {
-            padding: 0.8rem 1rem;
-            width: calc(100% - 2rem);
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
             border: none;
             border-radius: 8px;
-            color: var(--input-text);
-            background-color: var(--input-bg);
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            background-color: rgba(255,255,255,0.9); /* Fundo claro para input */
+            color: #333;
         }
-        input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px var(--primary-light), inset 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .jira-info {
-            font-style: italic;
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
-            min-height: 20px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
         button {
-            padding: 1.2rem;
-            font-size: 1.3rem;
-            font-weight: 600;
             width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            font-weight: bold;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            display: flex;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+            display: flex; /* Para alinhar ícone e texto */
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 0.5rem;
+            gap: 8px; /* Espaço entre ícone e texto */
         }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px var(--shadow);
+        .start-btn {
+            background-color: #fff; /* Fundo branco para START */
+            color: #990000; /* Texto vermelho escuro */
         }
-        button:active {
-            transform: translateY(0);
-            box-shadow: none;
+        .start-btn:hover {
+            background-color: #eee;
         }
-
-        .start {
-            background-color: var(--button-bg-start);
-            color: var(--button-text-start);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        .stop {
-            background-color: var(--button-bg-stop);
-            color: var(--button-text-stop);
-            margin-top: 1.5rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        /* Estilo para o novo botão de relatório - AGORA MAIS PARECIDO COM A IMAGEM */
+        
         .report-button {
-            background-color: var(--report-button-bg); /* Vermelho mais vibrante */
-            color: var(--text-light); /* Texto branco */
-            margin-top: 1rem;
-            max-width: 450px;
-            border-radius: 8px; /* Mantém as bordas arredondadas */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            /* Ajustes para parecer mais com o da imagem */
-            font-weight: 600;
-            padding: 1rem 1.2rem; /* Um pouco menos de padding para um visual mais compacto */
+            background-color: #990000; /* Vermelho escuro para o botão */
+            color: #fff; /* Texto branco */
+            margin-bottom: 10px;
+            max-width: 400px; /* Mantém a largura máxima */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Sombra suave */
         }
         .report-button:hover {
-            background-color: var(--report-button-hover); /* Um pouco mais escuro no hover */
-            transform: translateY(-2px);
-            box-shadow: 0 5px 12px rgba(0,0,0,0.3);
-        }
-        .report-button i {
-            margin-right: 8px; /* Espaçamento entre o ícone e o texto */
-            font-size: 1.1rem; /* Ajuste o tamanho do ícone se necessário */
+            background-color: #770000; /* Tom mais escuro no hover */
         }
 
-
-        .history {
-            margin-top: 3rem;
-            max-width: 450px;
-            width: 100%;
-            box-sizing: border-box;
-            color: var(--text-light);
-        }
-
-        .history h3 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(255,255,255,0.3);
-            padding-bottom: 0.8rem;
-            margin-bottom: 1.5rem;
-            color: var(--text-light);
-        }
-
-        .history-item {
-            background-color: var(--history-item-bg);
-            color: var(--history-item-text);
-            padding: 1rem 1.2rem;
-            border-radius: 10px;
-            margin-bottom: 0.8rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-        .history-item strong {
-            font-size: 1.15rem;
-            display: block;
-            margin-bottom: 0.2rem;
-            color: var(--primary-dark);
-            font-weight: 700;
-        }
-        .history-item .item-details {
-            font-size: 0.95rem;
-            color: var(--input-text);
-            line-height: 1.4;
-        }
-        .history-item .item-jira-summary {
-            font-style: italic;
-            margin-top: 0.2rem;
-            font-size: 0.85rem;
-        }
-        .history-item .item-timestamp {
-            font-size: 0.75rem;
-            opacity: 0.6;
-            margin-top: 0.5rem;
-            text-align: right;
-        }
-
-        .history-item .delete-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: var(--primary-medium);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            transition: color 0.2s ease, background-color 0.2s ease;
-        }
-        .history-item .delete-button:hover {
-            color: var(--primary-dark);
-            background-color: rgba(255,255,255,0.3);
-        }
-
-
-        footer {
-            margin-top: 4rem;
-            font-size: 0.9rem;
-            opacity: 0.8;
+        h2 {
+            margin: 20px 0 10px;
+            font-size: 1.5em;
             text-align: center;
         }
+        .task {
+            background-color: #fff; /* Fundo branco para as tarefas */
+            color: #000;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .task-time {
+            font-size: 0.9em;
+            color: #555; /* Cor mais suave para o texto de tempo */
+            white-space: pre-line;
+        }
+        .task button {
+            background-color: #990000; /* Vermelho para o botão da tarefa */
+            color: #fff;
+            margin-top: 8px;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 0.9em; /* Texto menor para o botão interno */
+        }
+        .task button:hover {
+            background-color: #cc0000;
+        }
 
-        /* Estilos para o Modal/Relatório */
+        /* Botão de Pausa Flutuante */
+        #floatingPauseButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff; /* Azul para destaque */
+            color: white;
+            border: none;
+            border-radius: 50%; /* Botão redondo */
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1000; /* Acima de outros elementos */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        #floatingPauseButton:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        /* Modal (Pop-up) para Pausa */
+        #pauseModal {
+            display: none; /* Escondido por padrão */
+            position: fixed;
+            z-index: 1001; /* Acima do botão flutuante */
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .pause-modal-content {
+            background: #cc0000;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+        .pause-modal-content h3 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        #pauseTimer {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .resume-btn {
+            background-color: #fff;
+            color: #990000;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            border: none;
+            width: 100%;
+        }
+        .resume-btn:hover {
+            background: #eee;
+        }
+
+        /* Modal do relatório (já existente) */
         .modal {
             display: none;
             position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: var(--modal-overlay-bg);
-            display: flex;
+            z-index: 999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7);
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
         }
-
         .modal-content {
-            background-color: var(--primary-medium);
-            margin: auto;
-            padding: 2.5rem;
-            border-radius: 15px;
+            background: #cc0000;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 400px;
             width: 90%;
-            max-width: 650px;
-            box-shadow: 0 8px 20px var(--shadow);
-            position: relative;
-            animation-name: animatetop;
-            animation-duration: 0.4s;
-            box-sizing: border-box;
-            color: var(--text-light);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid rgba(255,255,255,0.3);
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--button-bg-start);
-        }
-
-        .close-button {
-            color: var(--text-light);
-            font-size: 2.5rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s ease, transform 0.2s ease;
-            line-height: 1;
-        }
-
-        .close-button:hover,
-        .close-button:focus {
-            color: var(--primary-light);
-            transform: scale(1.1);
-            text-decoration: none;
-        }
-        
-        .report-date {
-            font-size: 1.1rem;
-            font-style: italic;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: -1rem;
-            margin-bottom: 1.5rem;
-            text-align: left;
-            display: block;
-        }
-
-
-        .daily-report-content {
-            background-color: rgba(255,255,255,0.1);
-            padding: 1.5rem;
-            border-radius: 10px;
-            white-space: pre-wrap;
-            text-align: left;
-            font-family: 'Poppins', monospace;
-            font-size: 1rem;
-            line-height: 1.6;
-            max-height: 300px;
+            max-height: 80vh;
             overflow-y: auto;
-            color: var(--text-light);
-            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
         }
-        .daily-report-content strong {
-            color: var(--button-bg-start);
-            font-weight: 600;
+        .modal-content h3 {
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.8em;
         }
-
-
-        /* Animação do Modal */
-        @keyframes animatetop {
-            from {top: -300px; opacity: 0}
-            to {top: 0; opacity: 1}
+        #resumoHistorico {
+            white-space: pre-wrap;
+            background-color: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            line-height: 1.5;
         }
-
-
-        /* Responsividade básica */
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 2.5rem;
-                margin-bottom: 2rem;
-            }
-            .card {
-                padding: 2rem;
-                max-width: 90%;
-            }
-            .timer {
-                font-size: 3.5rem;
-            }
-            button {
-                font-size: 1.1rem;
-                padding: 1rem;
-            }
-            .history h3 {
-                font-size: 1.5rem;
-            }
-            .history-item {
-                padding: 1rem;
-            }
-            .modal-content {
-                padding: 1.5rem;
-                width: 95%;
-            }
-            .modal-header h2 {
-                font-size: 1.5rem;
-            }
-            .close-button {
-                font-size: 1.5rem;
-            }
-            .daily-report-content {
-                font-size: 0.9rem;
-            }
+        .close-btn {
+            background: #fff;
+            color: #990000;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            border: none;
+            width: 100%;
+        }
+        .close-btn:hover {
+            background: #eee;
         }
     </style>
 </head>
 <body>
-    <h1><i class="fas fa-tasks"></i> TimeFlow</h1>
+    <h1>TimeFlow</h1>
 
-    <div class="card">
-        <div class="timer-status-icon" id="timerStatusIcon"></div>
-        <div class="timer" id="timer">00:00</div>
+    <div class="timer-card">
+        <div id="timer">08:00:00</div>
+        <div id="timer-info">Tempo restante | Início: --:--:--</div>
+        <input type="text" id="tarefaInput" placeholder="Digite o código do ticket (ex: HDA-123)">
+        <button class="start-btn" onclick="iniciarTarefa()"><i class="fas fa-play"></i> INICIAR TAREFA</button>
+    </div>
 
-        <div id="inputSection">
-            <input type="text" id="taskInput" placeholder="Digite o código do ticket (ex: HDA-123)" />
-            <div id="jiraInfo" class="jira-info"></div>
-            <button class="start" onclick="startTimer()"><i class="fas fa-play"></i> START</button>
-        </div>
+    <button class="report-button" onclick="abrirRelatorio()"><i class="fas fa-calendar-alt"></i> Ver Histórico do Dia</button>
 
-        <div id="activeTask" style="display: none;">
-            <h2 id="currentTask"></h2>
-            <p id="currentJira" class="jira-info"></p>
-            <button class="stop" onclick="stopTimer()"><i class="fas fa-stop"></i> ENCERRAR</button>
+    <div class="task-log">
+        <h2>Histórico Completo</h2>
+        <div id="historico"></div>
+    </div>
+
+    <button id="floatingPauseButton" onclick="alternarPausa()">
+        <i class="fas fa-pause"></i>
+    </button>
+
+    <div id="pauseModal">
+        <div class="pause-modal-content">
+            <h3>Tempo de Pausa</h3>
+            <div id="pauseTimer">00:00:00</div>
+            <button class="resume-btn" onclick="retomarTrabalho()">
+                <i class="fas fa-play"></i> RETOMAR TRABALHO
+            </button>
         </div>
     </div>
 
-    <button class="report-button" onclick="showDailyReport()"><i class="fas fa-clipboard-list"></i> Ver Histórico do Dia</button>
-
-    <div class="history" id="historySection" style="display: none;">
-        <h3>Histórico Completo</h3>
-        <div id="historyList"></div>
-    </div>
-
-    <footer>Developer by Rodrigo Quaresma</footer>
-
-    <div id="dailyReportModal" class="modal">
+    <div id="modalRelatorio" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>Relatório Diário</h2>
-                <span class="close-button" onclick="closeDailyReportModal()">&times;</span>
-            </div>
-            <span id="reportDateDisplay" class="report-date"></span>
-            <div id="dailyReportContent" class="daily-report-content">
-                </div>
+            <h3>Resumo do Histórico Diário</h3>
+            <div id="resumoHistorico"></div>
+            <button class="close-btn" onclick="fecharRelatorio()">Fechar</button>
         </div>
     </div>
 
     <script>
-        let time = 0;
-        let timerInterval = null;
-        let history = []; 
+        // --- Variáveis do Cronômetro Principal ---
+        let tempoRestantePrincipal = 8 * 60 * 60; // 8 horas em segundos
+        let intervaloPrincipal = null;
+        let cronometroIniciadoEmPrincipal = null; // Quando o trabalho do dia começou
+        let tarefas = [];
 
-        const taskInput = document.getElementById("taskInput");
-        const jiraInfo = document.getElementById("jiraInfo");
-        const timerDisplay = document.getElementById("timer");
-        const currentTask = document.getElementById("currentTask");
-        const currentJira = document.getElementById("currentJira");
-        const inputSection = document.getElementById("inputSection");
-        const activeTask = document.getElementById("activeTask");
-        const historySection = document.getElementById("historySection");
-        const historyList = document.getElementById("historyList");
-        const timerStatusIcon = document.getElementById("timerStatusIcon");
+        // --- Variáveis do Cronômetro de Pausa ---
+        let tempoPausaAtual = 0; // Tempo acumulado da pausa atual
+        let intervaloPausa = null;
+        let pausaIniciadaEm = null; // Quando a pausa atual começou
+        let totalTempoPausa = 0; // Total acumulado de todas as pausas
 
-        const dailyReportModal = document.getElementById("dailyReportModal");
-        const dailyReportContent = document.getElementById("dailyReportContent");
-        const reportDateDisplay = document.getElementById("reportDateDisplay");
+        // --- Elementos DOM (caches) ---
+        const timerElement = document.getElementById("timer");
+        const timerInfoElement = document.getElementById("timer-info");
+        const tarefaInput = document.getElementById("tarefaInput");
+        const historicoContainer = document.getElementById("historico");
+        const floatingPauseButton = document.getElementById("floatingPauseButton");
+        const pauseModal = document.getElementById("pauseModal");
+        const pauseTimerElement = document.getElementById("pauseTimer");
+        const modalRelatorio = document.getElementById("modalRelatorio");
+        const resumoHistoricoElement = document.getElementById("resumoHistorico");
 
-        // --- FUNÇÕES DE ARMAZENAMENTO LOCAL ---
-        function saveHistory() {
-            localStorage.setItem("timeflowHistory", JSON.stringify(history));
+        // Fuso horário de Brasília: UTC-3
+        function dataBrasilia(d = new Date()) {
+            const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+            const brasiliaOffset = -3 * 60; // em minutos
+            return new Date(utc + brasiliaOffset * 60000);
         }
 
-        function loadHistory() {
-            const savedHistory = localStorage.getItem("timeflowHistory");
-            if (savedHistory) {
-                history = JSON.parse(savedHistory);
-                history = history.map(item => {
-                    if (!item.timestamp) {
-                        item.timestamp = new Date().toISOString(); 
-                    }
-                    return item;
-                });
-                saveHistory(); 
-                updateHistory();
-            }
+        function formatarHora(date) {
+            if (!date) return '--:--:--';
+            return date.toLocaleTimeString('pt-BR', { hour12: false });
         }
-        // --- FIM FUNÇÕES DE ARMAZENAMENTO LOCAL ---
 
-        taskInput.addEventListener("input", () => {
-            const value = taskInput.value.trim();
-            const match = value.match(/([A-Z]+-\d+)/);
-            if (match) {
-                jiraInfo.textContent = `Resumo simulado para ${match[1]}`;
+        function formatarTempo(segundos) {
+            if (segundos < 0) segundos = 0;
+            const horas = Math.floor(segundos / 3600);
+            const min = String(Math.floor((segundos % 3600) / 60)).padStart(2, '0');
+            const sec = String(segundos % 60).padStart(2, '0');
+            return `${horas}h ${min}m ${sec}s`;
+        }
+
+        // --- Funções do Cronômetro Principal ---
+        function atualizarTimerPrincipal() {
+            const horas = String(Math.floor(tempoRestantePrincipal / 3600)).padStart(2, '0');
+            const minutos = String(Math.floor((tempoRestantePrincipal % 3600) / 60)).padStart(2, '0');
+            const segundos = String(tempoRestantePrincipal % 60).padStart(2, '0');
+            timerElement.textContent = `${horas}:${minutos}:${segundos}`;
+
+            let info = `Tempo restante | `;
+            if (cronometroIniciadoEmPrincipal) {
+                info += `Início: ${formatarHora(cronometroIniciadoEmPrincipal)}`;
             } else {
-                jiraInfo.textContent = "";
+                info += 'Início: --:--:--';
             }
-        });
+            timerInfoElement.textContent = info;
 
-        function formatTime(seconds) {
-            const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
-            const secs = String(seconds % 60).padStart(2, "0");
-            return `${mins}:${secs}`;
+            if (tempoRestantePrincipal <= 0 && intervaloPrincipal) {
+                clearInterval(intervaloPrincipal);
+                intervaloPrincipal = null;
+                alert("Tempo de trabalho esgotado!");
+                // Aqui você pode adicionar lógica para encerrar o dia de trabalho
+            }
         }
 
-        function formatDateForReport(dateObj) {
-            const d = new Date(dateObj); 
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}/${month}/${year}`;
+        function iniciarContadorPrincipal() {
+            if (!intervaloPrincipal) {
+                if (!cronometroIniciadoEmPrincipal) {
+                    cronometroIniciadoEmPrincipal = dataBrasilia();
+                }
+                intervaloPrincipal = setInterval(() => {
+                    if (tempoRestantePrincipal > 0) {
+                        tempoRestantePrincipal--;
+                        atualizarTimerPrincipal();
+                    } else {
+                        clearInterval(intervaloPrincipal);
+                        intervaloPrincipal = null;
+                        atualizarTimerPrincipal(); // Atualiza para 00:00:00
+                        alert("Tempo de trabalho esgotado!");
+                        // Desabilitar o botão de pausa quando o tempo esgotar
+                        floatingPauseButton.disabled = true;
+                        floatingPauseButton.style.opacity = 0.5;
+                    }
+                }, 1000);
+                floatingPauseButton.disabled = false; // Reabilita o botão de pausa
+                floatingPauseButton.style.opacity = 1;
+            }
         }
 
-        function startTimer() {
-            const task = taskInput.value.trim();
-            if (!task) {
-                alert("Por favor, digite o código do ticket para iniciar!");
+        function pausarContadorPrincipal() {
+            if (intervaloPrincipal) {
+                clearInterval(intervaloPrincipal);
+                intervaloPrincipal = null;
+                // O botão de pausa fica visível, mas agora está desabilitado se já estiver pausado ou tempo esgotado.
+                floatingPauseButton.disabled = true;
+                floatingPauseButton.style.opacity = 0.5;
+            }
+        }
+
+        function iniciarTarefa() {
+            const nomeTarefa = tarefaInput.value.trim();
+            if (!nomeTarefa) {
+                alert("Digite o nome do ticket.");
                 return;
             }
 
-            time = 0;
-            timerDisplay.textContent = "00:00";
-            inputSection.style.display = "none";
-            activeTask.style.display = "block";
-            currentTask.textContent = "Tarefa: " + task;
-            currentJira.textContent = jiraInfo.textContent;
-            
-            timerStatusIcon.innerHTML = '<i class="fas fa-hourglass-half" title="Em andamento"></i>';
+            // Garante que o contador principal esteja rodando
+            iniciarContadorPrincipal();
 
-            timerInterval = setInterval(() => {
-                time++;
-                timerDisplay.textContent = formatTime(time);
-            }, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-
-            const task = taskInput.value.trim();
-            const jiraSummary = currentJira.textContent;
-            history.push({ 
-                task, 
-                duration: time, 
-                jiraSummary,
-                timestamp: new Date().toISOString() 
-            });
-
-            saveHistory();
-            updateHistory();
-
-            taskInput.value = "";
-            jiraInfo.textContent = "";
-            inputSection.style.display = "block";
-            activeTask.style.display = "none";
-            timerStatusIcon.innerHTML = '<i class="fas fa-check-circle" title="Parado"></i>';
-        }
-
-        function deleteHistoryItem(index) {
-            const originalIndex = history.length - 1 - index; 
-            if (confirm("Tem certeza que deseja remover esta tarefa do histórico?")) {
-                history.splice(originalIndex, 1);
-                saveHistory();
-                updateHistory();
+            // Se houver uma tarefa anterior não finalizada, ela é finalizada automaticamente
+            const ultimaTarefa = tarefas[tarefas.length - 1];
+            if (ultimaTarefa && !ultimaTarefa.fim) {
+                finalizarTarefa(tarefas.length - 1);
             }
+
+            const inicioTarefa = dataBrasilia();
+            const novaTarefa = {
+                nome: nomeTarefa,
+                inicio: inicioTarefa,
+                fim: null,
+                duracao: null
+            };
+            tarefas.push(novaTarefa);
+            renderizarTarefas();
+            tarefaInput.value = "";
         }
 
+        function finalizarTarefa(index) {
+            const tarefa = tarefas[index];
+            if (tarefa.fim) return; // Já finalizada
 
-        function updateHistory() {
-            if (history.length > 0) {
-                historySection.style.display = "block";
-            } else {
-                historySection.style.display = "none";
-            }
-            
-            historyList.innerHTML = "";
+            tarefa.fim = dataBrasilia();
+            tarefa.duracao = Math.floor((tarefa.fim - tarefa.inicio) / 1000);
+            renderizarTarefas();
+        }
 
-            history.slice().reverse().forEach((item, index) => {
+        function renderizarTarefas() {
+            historicoContainer.innerHTML = "";
+            tarefas.slice().reverse().forEach((tarefa, index) => {
+                const originalIndex = tarefas.length - 1 - index;
                 const div = document.createElement("div");
-                div.className = "history-item";
-                const itemDate = item.timestamp ? new Date(item.timestamp) : null;
-                const formattedDate = itemDate ? `Registrado em: ${formatDateForReport(itemDate)}` : 'Data Indefinida';
-                
-                div.innerHTML = `
-                    <button class="delete-button" onclick="deleteHistoryItem(${index})" title="Remover tarefa"><i class="fas fa-times-circle"></i></button>
-                    <strong>${item.task}</strong>
-                    <div class="item-details">Tempo: ${formatTime(item.duration)}</div>
-                    ${item.jiraSummary && item.jiraSummary !== "" ? `<div class="item-details item-jira-summary">${item.jiraSummary}</div>` : ''}
-                    <div class="item-timestamp">${formattedDate}</div>
-                `;
-                historyList.appendChild(div);
-            });
-        }
+                div.className = "task";
 
-        // --- FUNÇÕES DE RELATÓRIO DIÁRIO ---
-        function showDailyReport() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); 
+                const header = document.createElement("div");
+                header.className = "task-header";
+                header.innerHTML = `<span>${tarefa.nome}</span> <span>${tarefa.duracao ? '✔' : '⏱'}</span>`;
 
-            let dailyTasks = [];
-            let totalDailyTime = 0;
+                const time = document.createElement("div");
+                time.className = "task-time";
+                time.textContent = tarefa.duracao
+                    ? `Início: ${formatarHora(tarefa.inicio)}\nFim: ${formatarHora(tarefa.fim)}\nDuração: ${formatarTempo(tarefa.duracao)}`
+                    : `Início: ${formatarHora(tarefa.inicio)}\nStatus: Em andamento...`;
 
-            history.forEach(item => {
-                if (item.timestamp) {
-                    const itemDate = new Date(item.timestamp);
-                    itemDate.setHours(0, 0, 0, 0); 
+                div.appendChild(header);
+                div.appendChild(time);
 
-                    if (itemDate.getTime() === today.getTime()) { 
-                        dailyTasks.push(item);
-                        totalDailyTime += item.duration;
-                    }
+                // Só adiciona o botão de finalizar se a tarefa não foi finalizada
+                if (!tarefa.duracao) {
+                    const btn = document.createElement("button");
+                    btn.textContent = "Finalizar Tarefa";
+                    btn.onclick = () => finalizarTarefa(originalIndex);
+                    div.appendChild(btn);
                 }
+
+                historicoContainer.appendChild(div);
             });
+        }
 
-            reportDateDisplay.textContent = `Data: ${formatDateForReport(today)}`;
+        // --- Funções do Cronômetro de Pausa (Pop-up) ---
+        function atualizarTimerPausa() {
+            const horas = String(Math.floor(tempoPausaAtual / 3600)).padStart(2, '0');
+            const minutos = String(Math.floor((tempoPausaAtual % 3600) / 60)).padStart(2, '0');
+            const segundos = String(tempoPausaAtual % 60).padStart(2, '0');
+            pauseTimerElement.textContent = `${horas}:${minutos}:${segundos}`;
+        }
 
-            let reportHtml = ''; 
+        function iniciarContadorPausa() {
+            if (!intervaloPausa) {
+                pausaIniciadaEm = dataBrasilia();
+                intervaloPausa = setInterval(() => {
+                    tempoPausaAtual++;
+                    atualizarTimerPausa();
+                }, 1000);
+            }
+        }
 
-            if (dailyTasks.length > 0) {
-                dailyTasks.forEach(item => {
-                    reportHtml += `<strong>- ${item.task}</strong> (${formatTime(item.duration)})<br>`;
-                    if (item.jiraSummary && item.jiraSummary !== "") {
-                        reportHtml += `  <span class="italic" style="display: block; margin-left: 15px; margin-bottom: 5px;">${item.jiraSummary}</span><br>`;
-                    } else {
-                        reportHtml += `<br>`; 
-                    }
-                });
-                reportHtml += `<br><strong>Tempo Total do Dia: ${formatTime(totalDailyTime)}</strong>`;
+        function pararContadorPausa() {
+            if (intervaloPausa) {
+                clearInterval(intervaloPausa);
+                intervaloPausa = null;
+                totalTempoPausa += tempoPausaAtual; // Acumula o tempo da pausa
+                tempoPausaAtual = 0; // Reseta para a próxima pausa
+            }
+        }
+
+        function alternarPausa() {
+            if (intervaloPrincipal) { // Se o trabalho está rodando, pausa para almoço/pausa
+                pausarContadorPrincipal();
+                iniciarContadorPausa();
+                pauseModal.style.display = 'flex'; // Mostra o pop-up
             } else {
-                reportHtml = "Nenhuma tarefa registrada para hoje.";
+                alert("O cronômetro principal não está rodando para ser pausado.");
             }
-
-            dailyReportContent.innerHTML = reportHtml; 
-            dailyReportModal.style.display = "flex"; 
         }
 
-        function closeDailyReportModal() {
-            dailyReportModal.style.display = "none";
+        function retomarTrabalho() {
+            pararContadorPausa(); // Para o cronômetro de pausa
+            pauseModal.style.display = 'none'; // Esconde o pop-up
+            iniciarContadorPrincipal(); // Retoma o cronômetro principal
+            atualizarTimerPausa(); // Reseta visualmente o timer de pausa no pop-up para 00:00:00
         }
 
+        // --- Funções do Modal de Relatório ---
+        function abrirRelatorio() {
+            if (tarefas.length === 0) {
+                resumoHistoricoElement.textContent = "Nenhuma tarefa registrada hoje.";
+            } else {
+                let texto = "";
+                let totalDuracaoTrabalhada = 0;
+
+                tarefas.forEach((tarefa, idx) => {
+                    texto += `• ${tarefa.nome}\n`;
+                    texto += `  Início: ${formatarHora(tarefa.inicio)}\n`;
+                    if (tarefa.fim) {
+                        texto += `  Fim: ${formatarHora(tarefa.fim)}\n`;
+                        texto += `  Duração: ${formatarTempo(tarefa.duracao)}\n`;
+                        totalDuracaoTrabalhada += tarefa.duracao;
+                    } else {
+                        texto += `  Status: Em andamento...\n`;
+                    }
+                    texto += "\n";
+                });
+                texto += `---`;
+                texto += `\nTotal trabalhado no dia: ${formatarTempo(totalDuracaoTrabalhada)}\n`;
+                texto += `Tempo restante do dia: ${formatarTempo(tempoRestantePrincipal)}\n`;
+                texto += `Total de tempo de pausa: ${formatarTempo(totalTempoPausa)}\n`;
+
+                resumoHistoricoElement.textContent = texto.trim();
+            }
+            modalRelatorio.style.display = "flex";
+        }
+
+        function fecharRelatorio() {
+            modalRelatorio.style.display = "none";
+        }
+
+        // --- Event Listeners Globais ---
         window.onclick = function(event) {
-            if (event.target == dailyReportModal) {
-                dailyReportModal.style.display = "none";
+            // Fechar modal de relatório ao clicar fora
+            if (event.target == modalRelatorio) {
+                modalRelatorio.style.display = "none";
             }
+            // Fechar modal de pausa ao clicar fora, mas apenas se o cronômetro principal estiver parado.
+            // Para seu caso, o modal de pausa deve ser fechado APENAS pelo botão "Retomar Trabalho".
+            // if (event.target == pauseModal) {
+            //     // pauseModal.style.display = "none"; // Removido para forçar o uso do botão Retomar
+            // }
         }
-        // --- FIM FUNÇÕES DE RELATÓRIO DIÁRIO ---
 
-
-        // --- CHAMADA PARA CARREGAR O HISTÓRICO AO INICIAR A PÁGINA ---
-        loadHistory(); 
-        timerStatusIcon.innerHTML = '<i class="fas fa-check-circle" title="Parado"></i>'; 
+        // --- Inicialização ---
+        atualizarTimerPrincipal(); // Atualiza o timer principal na tela ao carregar
+        atualizarTimerPausa(); // Atualiza o timer de pausa na tela ao carregar (mostra 00:00:00)
+        // O botão de pausa flutuante começa habilitado, mas o cronômetro principal não inicia automaticamente.
+        floatingPauseButton.disabled = false;
+        floatingPauseButton.style.opacity = 1;
     </script>
 </body>
 </html>
